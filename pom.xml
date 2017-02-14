@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.nikolai</groupId>
+  <artifactId>deploy-util-ap</artifactId>
+  <version>2.3.0-1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <depl.dir>${project.build.directory}/depl</depl.dir>
+    <unpack.dir>${project.build.directory}/unpacked</unpack.dir>
+    <env.conf>${unpack.dir}/conf/environment.properties</env.conf>
+    <customer.conf>${unpack.dir}/conf/config.properties</customer.conf>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0-alpha-2</version>
+        <executions>
+          <execution>
+            <id>read-environment-props</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>${env.conf}</file>
+                <file>${customer.conf}</file>
+              </files>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-deployment</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.apioutsourcing.ap-deployment</groupId>
+                  <artifactId>ap-deployment</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>${customer}-local</classifier>
+                  <outputDirectory>${depl.dir}</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>explode-distribution</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <unwar dest="${unpack.dir}/war">
+                  <fileset dir="${depl.dir}">
+                    <include name="*.war"/>
+                  </fileset>
+                </unwar>
+
+                <unzip dest="${unpack.dir}/conf">
+                  <fileset dir="${depl.dir}">
+                    <include name="*-conf.zip"/>
+                  </fileset>
+                </unzip>
+
+                <unzip dest="${unpack.dir}/webserver">
+                  <fileset dir="${depl.dir}">
+                    <include name="*-webserver.zip"/>
+                  </fileset>
+                </unzip>
+
+                <unzip dest="${unpack.dir}/io">
+                  <fileset dir="${depl.dir}">
+                    <include name="*-io.zip"/>
+                  </fileset>
+                </unzip>
+              </target>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>deploy</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <delete dir="${deploy.path}/${web.app.name}.war"/>
+                <copy todir="${deploy.path}/${web.app.name}.war">
+                  <fileset dir="${unpack.dir}/war">
+                    <include name="**/*"/>
+                  </fileset>
+                </copy>
+
+                <delete dir="${appserver.home}/configuration/${web.app.name}"/>
+                <copy todir="${appserver.home}/configuration/${web.app.name}">
+                  <fileset dir="${unpack.dir}/conf">
+                    <include name="**/*"/>
+                  </fileset>
+                </copy>
+
+                <delete dir="${webserver.document.root}/${web.app.name}"/>
+                <copy todir="${webserver.document.root}/${web.app.name}">
+                  <fileset dir="${unpack.dir}/webserver/webroot">
+                    <include name="**/*"/>
+                  </fileset>
+                </copy>
+
+                <copy todir="${webserver.conf.uriJkMounts.d}" file="${unpack.dir}/webserver/apache-conf/mod_jk/uriworkermap.${web.app.name}.properties" overwrite="true"/>
+                <copy todir="${webserver.conf.vhost_in}" file="${unpack.dir}/webserver/apache-conf/vhost_in/httpd.${web.app.name}.conf" overwrite="true"/>
+                <copy todir="${webserver.conf.vhost_out}" file="${unpack.dir}/webserver/apache-conf/vhost_out/httpd.${web.app.name}.conf" overwrite="true"/>
+
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.apioutsourcing.ap-deployment</groupId>
+      <artifactId>ap-deployment</artifactId>
+      <version>${project.version}</version>
+      <classifier>${customer}-local</classifier>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+  </profiles>
+</project>

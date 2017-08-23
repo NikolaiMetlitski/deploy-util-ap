@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.nikolai</groupId>
   <artifactId>deploy-util-ap</artifactId>
-  <version>2.3.0-1-SNAPSHOT</version>
+  <version>2.4.0-2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <properties>
@@ -38,7 +38,7 @@
         </executions>
       </plugin>
 
-      <plugin>
+      <!-- plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -61,7 +61,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin -->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -78,25 +78,25 @@
               <target>
                 <unwar dest="${unpack.dir}/war">
                   <fileset dir="${depl.dir}">
-                    <include name="*.war"/>
+                    <include name="appserver/*.war"/>
                   </fileset>
                 </unwar>
 
                 <unzip dest="${unpack.dir}/conf">
                   <fileset dir="${depl.dir}">
-                    <include name="*-conf.zip"/>
+                    <include name="appserver/*-conf.zip"/>
                   </fileset>
                 </unzip>
 
                 <unzip dest="${unpack.dir}/webserver">
                   <fileset dir="${depl.dir}">
-                    <include name="*-webserver.zip"/>
+                    <include name="webserver/*-webserver.zip"/>
                   </fileset>
                 </unzip>
 
                 <unzip dest="${unpack.dir}/io">
                   <fileset dir="${depl.dir}">
-                    <include name="*-io.zip"/>
+                    <include name="io/*-io.zip"/>
                   </fileset>
                 </unzip>
               </target>

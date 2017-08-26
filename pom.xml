@@ -82,6 +82,12 @@
                   </fileset>
                 </unwar>
 
+                <unzip dest="${unpack.dir}/datasources">
+                  <fileset dir="${depl.dir}">
+                    <include name="appserver/*-datasources.zip"/>
+                  </fileset>
+                </unzip>
+
                 <unzip dest="${unpack.dir}/conf">
                   <fileset dir="${depl.dir}">
                     <include name="appserver/*-conf.zip"/>
@@ -114,6 +120,12 @@
                 <delete dir="${deploy.path}/${web.app.name}.war"/>
                 <copy todir="${deploy.path}/${web.app.name}.war">
                   <fileset dir="${unpack.dir}/war">
+                    <include name="**/*"/>
+                  </fileset>
+                </copy>
+
+                <copy todir="${deploy.path}">
+                  <fileset dir="${unpack.dir}/datasources">
                     <include name="**/*"/>
                   </fileset>
                 </copy>
